@@ -18,11 +18,12 @@ class AdbProcess:
             print(f"Error connecting to client at {address}: {e}")
 
     def tap(self, x, y):
-        command = [self.adb_path, "shell", "input", "tap", str(x), str(y)]
+        command = [self.adb_path, "-s", f"{self.client_ip}:{self.client_port}", "shell", "input", "tap", str(x), str(y)]
         try:
             subprocess.check_output(command)
         except subprocess.CalledProcessError as e:
             print(f"Error tapping at ({x}, {y}): {e}")
+
     
     def swipe(self, x1, y1, x2, y2, duration=500):
         command = [self.adb_path, "shell", "input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duration)]
@@ -46,7 +47,7 @@ class AdbProcess:
             return None
 
     def screencap(self, save_path="screen.png"):
-        command = [self.adb_path, "exec-out", "screencap", "-p"]
+        command = [self.adb_path, "-s", f"{self.client_ip}:{self.client_port}", "exec-out", "screencap", "-p"]
         try:
             output = subprocess.check_output(command)
             with open(save_path, "wb") as f:

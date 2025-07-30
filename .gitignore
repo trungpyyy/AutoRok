@@ -1,1 +1,3 @@
 adb
+__pycache__
+.env
