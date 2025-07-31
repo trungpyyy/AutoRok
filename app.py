@@ -14,6 +14,8 @@ class AutomationApp:
         self.running = False
         self.thread = None
         self.tap_point = None
+        self.task_spy = False
+        self.task_cave_probe = False
         self.root.title("Android Automation Tool")
         self.root.iconphoto(False, tk.PhotoImage(file="./public/icon.png"))
         self.root.geometry("400x600")
@@ -27,6 +29,12 @@ class AutomationApp:
         self.start_button = tk.Button(self.button_frame, text="Start Automation", command=self.start_automation_ui)
         self.stop_button = tk.Button(self.button_frame, text="Stop Automation", command=self.stop_automation_ui)
 
+        text_spy = tk.StringVar(value="Enable Spy Task")
+        self.spy_checkbox = tk.Checkbutton(root, textvariable=text_spy, command=lambda: setattr(self, 'task_spy', not self.task_spy))
+        self.spy_checkbox.pack(pady=5)
+        text_cave_probe = tk.StringVar(value="Enable Cave Probe Task")
+        self.cave_probe_checkbox = tk.Checkbutton(root, textvariable=text_cave_probe, command=lambda: setattr(self, 'task_cave_probe', not self.task_cave_probe))
+        self.cave_probe_checkbox.pack(pady=5)
         self.show_start()
 
     def show_start(self):
@@ -69,7 +77,12 @@ class AutomationApp:
             "./images/send.png",
             "./images/goback.png"
         ]
-        def wait_until_found(adb, template_path, timeout=10, interval=2, threshold=0.8):
+        ACTION_IMAGES_CAVE_PROBE = [
+            "./images/cave_probe_4.png",
+            "./images/send.png",
+            "./images/goback.png"
+        ]
+        def wait_until_found(adb, template_path, timeout=10, interval=0.5, threshold=0.8):
             start_time = time.time()
             while time.time() - start_time < timeout and self.running:
                 adb.screencap("screen.png")
@@ -87,7 +100,7 @@ class AutomationApp:
                 return
             adb.tap(*self.tap_point)
 
-            time.sleep(2)
+            time.sleep(0.5)
             for idx, image_path in enumerate(ACTION_IMAGES, start=1):
                 pos = wait_until_found(adb, image_path, timeout=10)
                 if pos:
@@ -95,21 +108,54 @@ class AutomationApp:
                 else:
                     print(f"[{idx}] ❌ Not found: {image_path}")
                     break
-
+        def perform_action_cave_probe(adb):
+            # Use the selected tap point
+            if self.tap_point is None:
+                print("❌ No tap point selected, skipping action sequence.")
+                return
+            adb.tap(*self.tap_point)
+            cave_probe_pos =wait_until_found(adb, "./images/dotham_1.png", timeout=5)
+            if cave_probe_pos:
+                adb.tap(*cave_probe_pos)
+            adb.tap(750, 212) # CAVE_PROBE 2
+            time.sleep(0.8)
+            adb.tap(993, 335) # CAVE_PROBE 3
+            time.sleep(0.8)
+            for idx, image_path in enumerate(ACTION_IMAGES_CAVE_PROBE, start=1):
+                pos = wait_until_found(adb, image_path, timeout=10)
+                if pos:
+                    adb.tap(*pos)
+                else:
+                    print(f"[{idx}] ❌ Not found: {image_path}")
+                    break
         while self.running:
             adb.screencap("screen.png")
+            goback_pos = adb.find_object_position("screen.png", "./images/goback.png", threshold=0.8)
+            if goback_pos:
+                adb.tap(*goback_pos)
+                time.sleep(3)
+                continue
+            close_pos = adb.find_object_position("screen.png", "./images/close.png", threshold=0.8)
+            if close_pos:
+                adb.tap(*close_pos)
+                time.sleep(3)
+                continue
             t1 = adb.find_object_position("screen.png", "./images/dotham_t1.png", threshold=0.8)
             t2 = adb.find_object_position("screen.png", "./images/dotham_t2.png", threshold=0.8)
             helper_pos = adb.find_object_position("screen.png", "./images/help.png", threshold=0.8)
             if helper_pos:
                 adb.tap(*helper_pos)
                 time.sleep(3)
-            if t1:
+            if t1 and self.task_spy:
                 perform_action_sequence(adb)
-            if t2:
+            if t2 and self.task_spy:
                 perform_action_sequence(adb)
+            if t1 and self.task_cave_probe:
+                perform_action_cave_probe(adb)
+            if t2 and self.task_cave_probe:
+                perform_action_cave_probe(adb)
             time.sleep(2)
-
+        print("Automation done running...")
 if __name__ == "__main__":
     root = tk.Tk()
     app = AutomationApp(root)
