@@ -15,6 +15,7 @@ class AutomationApp:
         self.thread = None
         self.tap_point = None
         self.task_spy = False
+        self.check_count = 0
         self.task_cave_probe = False
         self.root.title("Android Automation Tool")
         self.root.iconphoto(False, tk.PhotoImage(file="./public/icon.png"))
@@ -119,8 +120,19 @@ class AutomationApp:
                 adb.tap(*cave_probe_pos)
             time.sleep(0.8)
             adb.tap(750, 212) # CAVE_PROBE 2
-            time.sleep(0.8)
-            adb.tap(993, 335) # CAVE_PROBE 3
+            if self.check_count == 0:
+                self.check_count = 1
+                time.sleep(0.8)
+                adb.tap(993, 335) # CAVE_PROBE 3
+            elif self.check_count == 1:
+                self.check_count = 2
+                time.sleep(0.8)
+                adb.tap(991, 477) # CAVE_PROBE 3
+            else:
+                self.check_count = 0
+                time.sleep(0.8)
+                adb.tap(995, 472) # CAVE_PROBE 3
+
             time.sleep(0.8)
             for idx, image_path in enumerate(ACTION_IMAGES_CAVE_PROBE, start=1):
                 pos = wait_until_found(adb, image_path, timeout=10)
