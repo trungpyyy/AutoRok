@@ -1,5 +1,6 @@
 import subprocess
 import cv2
+import time
 class AdbProcess:
     def __init__(self, adb_path="./adb/adb.exe", client_ip="127.0.0.1", client_port=5555):
         self.adb_path = adb_path
@@ -55,3 +56,24 @@ class AdbProcess:
         except subprocess.CalledProcessError as e:
             print(f"Error capturing screenshot: {e}")
 
+def wait_until_found(adb, template_path, timeout=10, interval=0.5, threshold=0.8, running=False):
+    """ Wait until the template image is found on the screen.
+    Args:
+        adb: AdbProcess instance to interact with the device.
+        template_path: Path to the template image to find.
+        timeout: Maximum time to wait for the image to be found.
+        interval: Time interval between checks.
+        threshold: Confidence threshold for image matching.
+        running: Flag to control the loop execution.
+    Returns:
+        Tuple of (x, y) coordinates if found, otherwise None.
+    """
+    start_time = time.time()
+    while time.time() - start_time < timeout and running:
+        adb.screencap("screen.png")
+        time.sleep(0.3)
+        pos = adb.find_object_position("screen.png", template_path, threshold=threshold)
+        if pos:
+            return pos
+        time.sleep(interval)
+    return None

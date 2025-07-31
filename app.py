@@ -5,9 +5,9 @@ This tool automates tasks on an Android device using ADB commands and image reco
 import tkinter as tk
 import threading
 import time
-from utils import AdbProcess
+from utils import AdbProcess, wait_until_found
 from test import choose_point_on_image  # Add this import
-
+import train
 class AutomationApp:
     def __init__(self, root):
         self.root = root
@@ -83,16 +83,7 @@ class AutomationApp:
             "./images/send.png",
             "./images/goback.png"
         ]
-        def wait_until_found(adb, template_path, timeout=10, interval=0.5, threshold=0.8):
-            start_time = time.time()
-            while time.time() - start_time < timeout and self.running:
-                adb.screencap("screen.png")
-                time.sleep(0.3)
-                pos = adb.find_object_position("screen.png", template_path, threshold=threshold)
-                if pos:
-                    return pos
-                time.sleep(interval)
-            return None
+      
 
         def perform_action_sequence(adb):
             # Use the selected tap point
@@ -103,7 +94,7 @@ class AutomationApp:
 
             time.sleep(0.5)
             for idx, image_path in enumerate(ACTION_IMAGES, start=1):
-                pos = wait_until_found(adb, image_path, timeout=10)
+                pos = wait_until_found(adb, image_path, timeout=10, running=self.running)
                 if pos:
                     adb.tap(*pos)
                 else:
@@ -115,7 +106,7 @@ class AutomationApp:
                 print("❌ No tap point selected, skipping action sequence.")
                 return
             adb.tap(*self.tap_point)
-            cave_probe_pos =wait_until_found(adb, "./images/dotham_1.png", timeout=5)
+            cave_probe_pos =wait_until_found(adb, "./images/dotham_1.png", timeout=5, running=self.running)
             if cave_probe_pos:
                 adb.tap(*cave_probe_pos)
             time.sleep(0.8)
@@ -135,7 +126,7 @@ class AutomationApp:
 
             time.sleep(0.8)
             for idx, image_path in enumerate(ACTION_IMAGES_CAVE_PROBE, start=1):
-                pos = wait_until_found(adb, image_path, timeout=10)
+                pos = wait_until_found(adb, image_path, timeout=10, running=self.running)
                 if pos:
                     adb.tap(*pos)
                 else:
@@ -151,8 +142,23 @@ class AutomationApp:
             close_pos = adb.find_object_position("screen.png", "./images/close.png", threshold=0.8)
             if close_pos:
                 adb.tap(*close_pos)
-                time.sleep(3)
+                time.sleep(2)
                 continue
+            ky_binh_pos = adb.find_object_position("screen.png", "./images/ky_binh_1.png", threshold=0.8)
+            if ky_binh_pos:
+                print("🚀 Starting Ky Binh training...")
+                adb.tap(*ky_binh_pos)
+                train.train_ky_binh(adb, running=self.running)
+            xe_phong_pos = adb.find_object_position("screen.png", "./images/xe_1.png", threshold=0.8)
+            if xe_phong_pos:
+                print("🚀 Starting Xe Phong training...")
+                adb.tap(*xe_phong_pos)
+                train.train_xe_phong(adb, running=self.running)
+            bo_binh_pos = adb.find_object_position("screen.png", "./images/bo_binh_1.png", threshold=0.8)
+            if bo_binh_pos:
+                print("🚀 Starting Bo Binh training...")
+                adb.tap(*bo_binh_pos)
+                train.train_bo_binh(adb, running=self.running)
             t1 = adb.find_object_position("screen.png", "./images/dotham_t1.png", threshold=0.8)
             t2 = adb.find_object_position("screen.png", "./images/dotham_t2.png", threshold=0.8)
             helper_pos = adb.find_object_position("screen.png", "./images/help.png", threshold=0.8)
