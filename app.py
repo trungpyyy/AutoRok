@@ -117,6 +117,7 @@ class AutomationApp:
             cave_probe_pos =wait_until_found(adb, "./images/dotham_1.png", timeout=5)
             if cave_probe_pos:
                 adb.tap(*cave_probe_pos)
+            time.sleep(0.8)
             adb.tap(750, 212) # CAVE_PROBE 2
             time.sleep(0.8)
             adb.tap(993, 335) # CAVE_PROBE 3
