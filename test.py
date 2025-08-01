@@ -1,3 +1,4 @@
+import subprocess
 import cv2
 
 from utils import AdbProcess
@@ -14,10 +15,9 @@ def click_event(event, x, y, flags, param):
         cv2.waitKey(500)
         cv2.destroyAllWindows()
 
-def choose_point_on_image(image_path):
-    img = cv2.imread(image_path)
+def choose_point_on_image(img):
     if img is None:
-        print(f"❌ Failed to load image: {image_path}")
+        print(f"❌ Failed to load image")
         return None
 
     print("🖱️ Click on the image to select a tap point...")
@@ -35,6 +35,14 @@ def choose_point_on_image(image_path):
 
 if __name__ == "__main__":
     adb = AdbProcess(adb_path="./adb/adb.exe", client_ip="127.0.0.1", client_port=5555)
-    adb.screencap("test.png")
+    command = ["./adb/adb.exe", "-s", f"127.0.0.1:5555", "exec-out", "screencap", "-p"]
+    try:
+        output = subprocess.check_output(command)
+        with open("test.png", "wb") as f:
+                f.write(output)
+    except subprocess.CalledProcessError as e:
+        print(f"Error capturing screenshot: {e}")
+
     image_path = "test.png"  # ảnh đã capture từ adb
-    choose_point_on_image(image_path)
+    img = cv2.imread(image_path)
+    choose_point_on_image(img)

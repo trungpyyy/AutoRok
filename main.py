@@ -11,22 +11,21 @@ ACTION_IMAGES = [
 ]
 
 
-def wait_until_found(adb: AdbProcess, template_path, timeout=10, interval=2, threshold=0.8):
+def wait_until_found(adb: AdbProcess, template_path, timeout=10, interval=2, threshold=0.85):
     """
     Chờ đến khi tìm thấy object trên màn hình, hoặc hết timeout.
     """
     start_time = time.time()
     while time.time() - start_time < timeout:
-        adb.screencap("screen.png")
         time.sleep(0.3)
-        pos = adb.find_object_position("screen.png", template_path, threshold=threshold)
+        pos = adb.find_object_position(adb.screencap(), template_path, threshold=threshold)
         if pos:
             return pos
         time.sleep(interval)
     return None
 
 def perform_action(adb: AdbProcess, image_path: str):
-    pos = adb.find_object_position("screen.png", image_path, threshold=0.8)
+    pos = adb.find_object_position(adb.screencap(), image_path, threshold=0.85)
 
     if pos:
         adb.tap(*pos)
@@ -50,10 +49,9 @@ def perform_action_sequence(adb: AdbProcess):
 if __name__ == "__main__":
     adb = AdbProcess(adb_path="./adb/adb.exe", client_ip="127.0.0.1", client_port=5555)
     while True:
-        adb.screencap("screen.png")
-        t1 = adb.find_object_position("screen.png", "./images/dotham_t1.png", threshold=0.8)
-        t2 = adb.find_object_position("screen.png", "./images/dotham_t2.png", threshold=0.8)
-        helper_pos = adb.find_object_position("screen.png", "./images/help.png", threshold=0.8)
+        t1 = adb.find_object_position(adb.screencap(), "./images/dotham_t1.png", threshold=0.85)
+        t2 = adb.find_object_position(adb.screencap(), "./images/dotham_t2.png", threshold=0.85)
+        helper_pos = adb.find_object_position(adb.screencap(), "./images/help.png", threshold=0.85)
         if helper_pos:
             adb.tap(*helper_pos)
             time.sleep(3)            

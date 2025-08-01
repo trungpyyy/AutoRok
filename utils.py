@@ -1,6 +1,7 @@
 import subprocess
 import cv2
 import time
+import numpy as np
 class AdbProcess:
     def __init__(self, adb_path="./adb/adb.exe", client_ip="127.0.0.1", client_port=5555):
         self.adb_path = adb_path
@@ -34,10 +35,9 @@ class AdbProcess:
         except subprocess.CalledProcessError as e:
             print(f"Error swiping from ({x1}, {y1}) to ({x2}, {y2}): {e}")
 
-    def find_object_position(self, screenshot_path, template_path, threshold=0.8):
-        screen = cv2.imread(screenshot_path)
+    def find_object_position(self, screen, template_path, threshold=0.85):
         template = cv2.imread(template_path)
-
+        # template = cv2.cvtColor(template, cv2.COLOR_BGR2RGB)
         result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
         _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
@@ -47,16 +47,36 @@ class AdbProcess:
         else:
             return None
 
-    def screencap(self, save_path="screen.png"):
+    def screencap(self):
         command = [self.adb_path, "-s", f"{self.client_ip}:{self.client_port}", "exec-out", "screencap", "-p"]
         try:
             output = subprocess.check_output(command)
-            with open(save_path, "wb") as f:
-                f.write(output)
+
+            # Chuyển output (dạng bytes của ảnh PNG) thành numpy array
+            img_array = np.frombuffer(output, dtype=np.uint8)
+
+            # Decode ảnh từ memory buffer thành ảnh OpenCV (BGR)
+            img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+            # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Chuyển đổi sang RGB nếu cần
+            return img
+        except subprocess.CalledProcessError as e:
+            print(f"Error capturing screenshot: {e}")
+            return None
+    def screencap_no_cvt(self):
+        command = [self.adb_path, "-s", f"{self.client_ip}:{self.client_port}", "exec-out", "screencap", "-p"]
+        try:
+            output = subprocess.check_output(command)
+
+            # Chuyển output (dạng bytes của ảnh PNG) thành numpy array
+            img_array = np.frombuffer(output, dtype=np.uint8)
+
+            # Decode ảnh từ memory buffer thành ảnh OpenCV (BGR)
+            img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+            return img
         except subprocess.CalledProcessError as e:
             print(f"Error capturing screenshot: {e}")
 
-def wait_until_found(adb, template_path, timeout=10, interval=0.5, threshold=0.8, running=False):
+def wait_until_found(adb, template_path, timeout=10, interval=0.5, threshold=0.85, running=False):
     """ Wait until the template image is found on the screen.
     Args:
         adb: AdbProcess instance to interact with the device.
@@ -70,9 +90,8 @@ def wait_until_found(adb, template_path, timeout=10, interval=0.5, threshold=0.8
     """
     start_time = time.time()
     while time.time() - start_time < timeout and running:
-        adb.screencap("screen.png")
         time.sleep(0.3)
-        pos = adb.find_object_position("screen.png", template_path, threshold=threshold)
+        pos = adb.find_object_position(adb.screencap(), template_path, threshold=threshold)
         if pos:
             return pos
         time.sleep(interval)
