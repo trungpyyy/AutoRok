@@ -132,9 +132,17 @@ class AutomationApp:
             if goback_pos:
                 adb.tap(*goback_pos)
                 continue
+            back_pos = adb.find_object_position(img, "./images/back.png")
+            if back_pos:
+                adb.tap(*back_pos)
+                continue
             close_pos = adb.find_object_position(img, "./images/close.png")
             if close_pos:
                 adb.tap(*close_pos)
+                continue
+            close_1_pos = adb.find_object_position(img, "./images/close_1.png")
+            if close_1_pos:
+                adb.tap(*close_1_pos)
                 continue
             ky_binh_pos = adb.find_object_position(img, "./images/train_ky_binh_1.png")
             if ky_binh_pos:
@@ -171,7 +179,7 @@ class AutomationApp:
                 perform_action_sequence(adb)
             if (t1 or t2 or t3 or t4) and self.task_cave_probe:
                 perform_action_cave_probe(adb)
-
+            time.sleep(2)
         print("Automation done running...")
 if __name__ == "__main__":
     root = tk.Tk()
