@@ -119,7 +119,6 @@ class AutomationApp:
             time.sleep(0.85)
             adb.tap(993, 605) # CAVE_PROBE 3
 
-            time.sleep(0.85)
             for idx, image_path in enumerate(ACTION_IMAGES_CAVE_PROBE, start=1):
                 pos = wait_until_found(adb, image_path, timeout=10, running=self.running)
                 if pos:
@@ -128,53 +127,51 @@ class AutomationApp:
                     print(f"[{idx}] ❌ Not found: {image_path}")
                     break
         while self.running:
-            goback_pos = adb.find_object_position(adb.screencap(), "./images/goback.png")
+            img = adb.screencap()
+            goback_pos = adb.find_object_position(img, "./images/goback.png")
             if goback_pos:
                 adb.tap(*goback_pos)
-                time.sleep(1)
                 continue
-            close_pos = adb.find_object_position(adb.screencap(), "./images/close.png")
+            close_pos = adb.find_object_position(img, "./images/close.png")
             if close_pos:
                 adb.tap(*close_pos)
-                time.sleep(1)
                 continue
-            ky_binh_pos = adb.find_object_position(adb.screencap(), "./images/train_ky_binh_1.png")
+            ky_binh_pos = adb.find_object_position(img, "./images/train_ky_binh_1.png")
             if ky_binh_pos:
                 print("🚀 Starting Ky Binh training...")
                 adb.tap(*ky_binh_pos)
                 train.train_ky_binh(adb, running=self.running)
-            xe_phong_pos = adb.find_object_position(adb.screencap(), "./images/train_xe_1.png")
+            xe_phong_pos = adb.find_object_position(img, "./images/train_xe_1.png")
             if xe_phong_pos:
                 print("🚀 Starting Xe Phong training...")
                 adb.tap(*xe_phong_pos)
                 train.train_xe_phong(adb, running=self.running)
-            bo_binh_pos = adb.find_object_position(adb.screencap(), "./images/train_bo_binh_1.png")
+            bo_binh_pos = adb.find_object_position(img, "./images/train_bo_binh_1.png")
             if bo_binh_pos:
                 print("🚀 Starting Bo Binh training...")
                 adb.tap(*bo_binh_pos)
                 train.train_bo_binh(adb, running=self.running)
-            cung_phap_pos = adb.find_object_position(adb.screencap(), "./images/train_cung_1.png")
+            cung_phap_pos = adb.find_object_position(img, "./images/train_cung_1.png")
             if cung_phap_pos:
                 print("🚀 Starting Cung Phap training...")
                 adb.tap(*cung_phap_pos)
                 train.train_cung(adb, running=self.running)
-            t1 = adb.find_object_position(adb.screencap(), "./images/dotham_t1.png")
-            t2 = adb.find_object_position(adb.screencap(), "./images/dotham_t2.png")
-            t3 = adb.find_object_position(adb.screencap(), "./images/dotham_t3.png")
-            t4 = adb.find_object_position(adb.screencap(), "./images/dotham_t4.png")
-            disconnected_pos = adb.find_object_position(adb.screencap(), "./images/disconnected.png")
+            disconnected_pos = adb.find_object_position(img, "./images/disconnected.png")
             if disconnected_pos:
                 print("❌ Device disconnected, stopping automation.")
                 adb.tap(638, 471)
-            helper_pos = adb.find_object_position(adb.screencap(), "./images/help.png")
+            helper_pos = adb.find_object_position(img, "./images/help.png")
             if helper_pos:
                 adb.tap(*helper_pos)
+            t1 = adb.find_object_position(img, "./images/dotham_t1.png")
+            t2 = adb.find_object_position(img, "./images/dotham_t2.png")
+            t3 = adb.find_object_position(img, "./images/dotham_t3.png")
+            t4 = adb.find_object_position(img, "./images/dotham_t4.png")
             if (t1 or t2 or t3 or t4) and self.task_spy:
                 perform_action_sequence(adb)
             if (t1 or t2 or t3 or t4) and self.task_cave_probe:
                 perform_action_cave_probe(adb)
 
-            time.sleep(1)
         print("Automation done running...")
 if __name__ == "__main__":
     root = tk.Tk()

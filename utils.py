@@ -57,7 +57,6 @@ class AdbProcess:
 
             # Decode ảnh từ memory buffer thành ảnh OpenCV (BGR)
             img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-            # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Chuyển đổi sang RGB nếu cần
             return img
         except subprocess.CalledProcessError as e:
             print(f"Error capturing screenshot: {e}")
