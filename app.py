@@ -8,12 +8,14 @@ import time
 from utils import AdbProcess, wait_until_found
 from test import choose_point_on_image  # Add this import
 import train
+from attack import attack
 class AutomationApp:
     def __init__(self, root):
         self.root = root
         self.running = False
         self.thread = None
         self.tap_point = None
+        self.task_attack = False
         self.task_spy_var = tk.BooleanVar(value=True)
         self.task_spy = self.task_spy_var.get()
         self.task_cave_probe = False
@@ -39,8 +41,20 @@ class AutomationApp:
         )
         self.spy_checkbox.pack(pady=5)
         text_cave_probe = tk.StringVar(value="Enable Cave Probe Task")
-        self.cave_probe_checkbox = tk.Checkbutton(root, textvariable=text_cave_probe, command=lambda: setattr(self, 'task_cave_probe', not self.task_cave_probe))
+        self.cave_probe_checkbox = tk.Checkbutton(
+            root,
+            textvariable=text_cave_probe,
+            command=lambda: setattr(self, 'task_cave_probe', not self.task_cave_probe))
         self.cave_probe_checkbox.pack(pady=5)
+        
+        text_attack= tk.StringVar(value="Enable Attack Task")
+        self.attack_checkbox = tk.Checkbutton(
+            root,
+            textvariable=text_attack,              # Gắn biến boolean
+            command=lambda: setattr(self, 'task_attack', not self.task_attack)
+        )
+        self.attack_checkbox.pack(pady=5)
+        
         self.show_start()
 
     def show_start(self):
@@ -131,18 +145,22 @@ class AutomationApp:
             goback_pos = adb.find_object_position(img, "./images/goback.png")
             if goback_pos:
                 adb.tap(*goback_pos)
+                time.sleep(0.5)
                 continue
             back_pos = adb.find_object_position(img, "./images/back.png")
             if back_pos:
                 adb.tap(*back_pos)
+                time.sleep(0.5)
                 continue
             close_pos = adb.find_object_position(img, "./images/close.png")
             if close_pos:
                 adb.tap(*close_pos)
+                time.sleep(0.5)
                 continue
             close_1_pos = adb.find_object_position(img, "./images/close_1.png")
             if close_1_pos:
                 adb.tap(*close_1_pos)
+                time.sleep(0.5)
                 continue
             ky_binh_pos = adb.find_object_position(img, "./images/train_ky_binh_1.png")
             if ky_binh_pos:
@@ -171,6 +189,7 @@ class AutomationApp:
             helper_pos = adb.find_object_position(img, "./images/help.png")
             if helper_pos:
                 adb.tap(*helper_pos)
+                time.sleep(0.5)
             t1 = adb.find_object_position(img, "./images/dotham_t1.png")
             t2 = adb.find_object_position(img, "./images/dotham_t2.png")
             t3 = adb.find_object_position(img, "./images/dotham_t3.png")
@@ -179,6 +198,10 @@ class AutomationApp:
                 perform_action_sequence(adb)
             if (t1 or t2 or t3 or t4) and self.task_cave_probe:
                 perform_action_cave_probe(adb)
+            if self.task_attack:
+                check_attack_pos = adb.find_object_position(img, "./images/attack_none_2.png")
+                if check_attack_pos:
+                    attack(adb, running=self.running)
             time.sleep(2)
         print("Automation done running...")
 if __name__ == "__main__":
